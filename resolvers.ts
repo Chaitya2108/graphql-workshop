@@ -19,6 +19,16 @@ export const resolvers = {
         driver(_, {id}) {
             return drivers.find(driver => driver.id === id);
         },
+        orders() {
+            return orders;
+        },
+        order(_, {id}) {
+            return orders.find(order => order.id === id);
+        },
+        ordersByRestaurant(_,{restaurant}) {
+            return orders.filter(order => order.restaurant === restaurant);
+        }
+
     },
     // Mutations are for adding, deleting, and modifying data
     Mutation: {
@@ -53,6 +63,29 @@ export const resolvers = {
         // Ensure the order doesn't already have a driver
         // Update the order and driver accordingly
         // Return the updated order!
+        acceptOrder(_,args) {
+            const driverID = args.driver;
+            const orderID = args.order;
+            console.log(driverID);
+            console.log(orderID);
+            const available = drivers[drivers.findIndex(driver => driver.id === driverID)].status;
+            if (!(available === "Available")) {
+                throw new Error("Driver not available");
+            }
+            const completed = orders[orders.findIndex(order => orderID === order.id)].status;
+            const curDriver = orders[orders.findIndex(order => orderID === order.id)].driver;
+            if (completed === "Completed") {
+                throw new Error("Order completed");
+            }
+            if (!(curDriver === "")) {
+                throw new Error("Driver already assigned");
+            }
+            drivers[drivers.findIndex(driver => driver.id === driverID)].status = "Unavailable";
+            orders[orders.findIndex(order => orderID === order.id)].status = "Completed";
+            orders[orders.findIndex(order => orderID === order.id)].driver = drivers.find(driver => driver.id === driverID).name;
+            return orders.find(order => orderID === order.id);
+            
+        }
     },
 
     // For querying related data, we introduce custom objects
